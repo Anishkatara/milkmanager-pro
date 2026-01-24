@@ -11,7 +11,7 @@
 <meta name="author" content="Anish Katara">
 <meta name="robots" content="index, follow">
 
-<!-- Firebase -->
+<!-- Firebase (v10 compat for new features) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -38,6 +38,7 @@ body{
   background:#fff;
   padding:24px;
   border-radius:16px;
+  text-align:center;
   box-shadow:0 10px 30px rgba(0,0,0,0.15);
 }
 input,select{
@@ -55,6 +56,7 @@ button{
   background:#2563eb;
   color:#fff;
   font-weight:bold;
+  cursor:pointer;
 }
 .app{
   display:flex;
@@ -65,6 +67,10 @@ button{
   background:#fff;
   padding:20px;
   border-right:1px solid #e5e7eb;
+}
+.sidebar p{
+  cursor:pointer;
+  margin:10px 0;
 }
 .main{
   flex:1;
@@ -89,16 +95,16 @@ button{
   font-size:14px;
 }
 .qr{text-align:center;margin-top:16px}
-.error{color:red;font-size:14px}
+.error{color:red;font-size:14px;margin-top:6px}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN SCREEN -->
 <div id="loginBox" class="center">
-  <div class="card" style="width:320px;text-align:center">
-    <img src="dairy_logo.png" width="90" style="border-radius:50%">
+  <div class="card" style="width:320px;">
+    <img src="dairy_logo.png" width="90" style="border-radius:50%;margin-bottom:10px">
     <h2>Anish Dairy</h2>
     <input id="email" type="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
@@ -107,7 +113,7 @@ button{
   </div>
 </div>
 
-<!-- APP -->
+<!-- APP SCREEN -->
 <div id="app" class="hidden app">
   <div class="sidebar">
     <h3>Anish Dairy</h3>
@@ -117,7 +123,6 @@ button{
 
   <div class="main">
     <h2>Generate Bill</h2>
-
     <select id="customerSelect"></select>
     <button onclick="generateBill()">Generate Bill</button>
 
@@ -153,7 +158,7 @@ button{
 </div>
 
 <script>
-/* ================= FIREBASE ================= */
+/* ================= FIREBASE CONFIG ================= */
 firebase.initializeApp({
   apiKey: "AIzaSyA6bK8TZkVqlyeRw-etHi-MxznRW8jBPJQ",
   authDomain: "anish-milk-app.firebaseapp.com",
@@ -180,10 +185,12 @@ auth.onAuthStateChanged(user=>{
 
 function login(){
   error.innerText="";
-  auth.signInWithEmailAndPassword(
-    email.value.trim(),
-    password.value.trim()
-  ).catch(e=>error.innerText=e.message);
+  const e = email.value.trim();
+  const p = password.value.trim();
+  if(!e || !p){ error.innerText="Please enter email and password"; return; }
+
+  auth.signInWithEmailAndPassword(e,p)
+      .catch(err=>error.innerText=err.message);
 }
 
 function logout(){
@@ -205,7 +212,7 @@ function loadCustomers(){
 
 /* ================= BILL ================= */
 function generateBill(){
-  const cid=customerSelect.value;
+  const cid = customerSelect.value;
   let milkTotal=0,taken=0,given=0;
   billEntries.innerHTML="";
 
@@ -255,12 +262,11 @@ function generateBill(){
   });
 }
 
-/* ================= PDF ================= */
 function downloadPDF(){
   const { jsPDF } = window.jspdf;
   new jsPDF().html(billArea,{
-    callback:pdf=>pdf.save("Anish_Dairy_Bill.pdf"),
-    x:10,y:10
+    callback: pdf=>pdf.save("Anish_Dairy_Bill.pdf"),
+    x:10, y:10
   });
 }
 
