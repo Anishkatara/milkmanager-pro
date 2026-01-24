@@ -1,1464 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Anish Dairy – Milk Manager App</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="description" content="Anish Dairy Milk Manager App by Anish Katara to manage milk entries, customers, payments, and invoices.">
+<title>Anish Dairy – Milk Manager | Anish Katara</title>
 
-<meta name="keywords" content="anishdairy, anish dairy, anish katara, milk manager, dairy app">
-
+<meta name="description" content="Anish Dairy Milk Manager by Anish Katara. Manage buyers, sellers, milk entries, payments and generate professional milk bills with UPI QR." />
+<meta name="keywords" content="Anish Dairy, Anish Katara, Katara Dairy, Milk Manager, Dairy Billing App" />
 <meta name="author" content="Anish Katara">
+<meta name="robots" content="index, follow">
 
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>Milk Manager Pro</title>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- PDF & QR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-           <h1>Anish Dairy</h1>
-<h2>Milk Manager App by Anish Katara</h2>
-
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: #f9fafb; 
-            color: #111827;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden;
-        }
-
-        .login-container { display:flex; align-items:center; justify-content:center; min-height:100vh; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:1rem; }
-        .login-box { background:#fff; padding:1.5rem; border-radius:1rem; box-shadow:0 20px 25px -5px rgba(0,0,0,.1); width:100%; max-width:420px; }
-        .login-header { text-align:center; margin-bottom:1.25rem; }
-        .login-header h1 { font-size:1.5rem; color:#1e3a8a; margin-bottom:.25rem; }
-
-        .form-group { margin-bottom:1.2rem; }
-        .form-label { display:block; margin-bottom:.5rem; color:#374151; font-weight:600; font-size:.95rem; }
-        .form-input, .form-select { 
-            width:100%; 
-            padding:.85rem; 
-            border:2px solid #d1d5db; 
-            border-radius:.5rem; 
-            font-size:16px;
-            transition: border-color 0.2s;
-            background: #fff;
-        }
-        .form-input:focus, .form-select:focus { 
-            outline:none; 
-            border-color:#3b82f6; 
-            box-shadow:0 0 0 3px rgba(59,130,246,.1); 
-        }
-
-        .btn { 
-            padding:.85rem 1rem; 
-            border-radius:.5rem; 
-            border:none; 
-            cursor:pointer; 
-            font-weight:600; 
-            display:inline-flex; 
-            align-items:center; 
-            justify-content:center; 
-            gap:.5rem; 
-            transition:all .2s;
-            min-height:48px;
-            font-size:1rem;
-        }
-        .btn-primary { background:#2563eb; color:#fff; width:100%; }
-        .btn-primary:active { background:#1d4ed8; transform: scale(0.98); }
-        .btn-secondary { background:#e5e7eb; color:#374151; width:100%; margin-top:.5rem; }
-        .btn-secondary:active { background:#d1d5db; transform: scale(0.98); }
-
-        .app-container { display:none; min-height:100vh; }
-        .app-container.show { display:block; }
-
-        .sidebar { 
-            position:fixed; 
-            left:0; 
-            top:0; 
-            bottom:0; 
-            width:280px; 
-            background: linear-gradient(to bottom,#1e3a8a,#1e40af); 
-            color:#fff; 
-            display:flex; 
-            flex-direction:column; 
-            padding:1rem; 
-            box-shadow:0 10px 15px -3px rgba(0,0,0,.1); 
-            z-index:100;
-            transform: translateX(-100%);
-            transition: transform 0.28s ease;
-        }
-        .sidebar.active { transform: translateX(0); }
-        
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 99;
-            display: none;
-        }
-        .sidebar-overlay.active { display: block; }
-
-        .sidebar-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
-        .sidebar-header h1 { font-size:1.1rem; font-weight:700; }
-
-        .sidebar-close { 
-            background: transparent; 
-            border: none; 
-            color: #fff; 
-            font-size: 1.8rem; 
-            cursor: pointer; 
-            padding: 0.25rem;
-            line-height: 1;
-            min-width: 44px;
-            min-height: 44px;
-        }
-        .sidebar-nav { display:flex; flex-direction:column; gap:.5rem; flex:1; overflow:auto; -webkit-overflow-scrolling: touch; }
-        .nav-item { 
-            display:flex; 
-            align-items:center; 
-            gap:.6rem; 
-            padding:.9rem; 
-            border-radius:.5rem; 
-            background:transparent; 
-            color:#fff; 
-            cursor:pointer; 
-            border:none; 
-            font-weight:600; 
-            text-align:left; 
-            transition:all .2s;
-            font-size:1rem;
-            min-height:48px;
-        }
-        .nav-item:active { background: #1e40af; }
-        .nav-item.active { background:#fff; color:#1e3a8a; box-shadow:0 4px 6px rgba(0,0,0,.08); }
-
-        .sidebar-footer { margin-top:1rem; }
-        .user-info { display:flex; align-items:center; gap:.6rem; background:rgba(255,255,255,.08); padding:.6rem; border-radius:.5rem; margin-bottom:.5rem; }
-        .user-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#8b5cf6); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:1.2rem; }
-
-        .header { 
-            position:sticky; 
-            top:0; 
-            background:#fff; 
-            border-bottom:2px solid #e5e7eb; 
-            z-index:150; 
-        }
-        .header-content { 
-            display:flex; 
-            align-items:center; 
-            gap:1rem; 
-            padding:.85rem 1rem; 
-            justify-content:space-between; 
-        }
-        
-        .menu-btn {
-            background: none;
-            border: none;
-            font-size: 1.8rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            line-height: 1;
-            color: #374151;
-            min-width: 44px;
-            min-height: 44px;
-        }
-
-        .three-dot-menu {
-            position: relative;
-        }
-        .three-dot-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            color: #374151;
-            min-width: 44px;
-            min-height: 44px;
-        }
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background: #fff;
-            border: 2px solid #e5e7eb;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            min-width: 180px;
-            z-index: 250;
-            margin-top: 0.5rem;
-        }
-        .dropdown-menu.active {
-            display: block;
-        }
-        .dropdown-item {
-            padding: 0.85rem 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 0.95rem;
-            transition: background 0.2s;
-        }
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
-        .dropdown-item:active {
-            background: #f3f4f6;
-        }
-        
-        .search-container { 
-            display:flex; 
-            align-items:center; 
-            flex:1; 
-            max-width:28rem; 
-            position:relative; 
-        }
-        .search-input { 
-            width:100%; 
-            padding:.6rem 1rem .6rem 2.8rem; 
-            border:2px solid #d1d5db; 
-            border-radius:.5rem;
-            font-size:16px;
-        }
-
-        .sync-badge { padding:.45rem .7rem; border-radius:.5rem; background:#dcfce7; color:#065f46; font-weight:600; font-size:.85rem; }
-
-        .main-content { 
-            padding:1.2rem; 
-            min-height:calc(100vh - 70px); 
-        }
-        .stats-grid { 
-            display:grid; 
-            grid-template-columns:repeat(2, 1fr); 
-            gap:1rem; 
-            margin-bottom:1.5rem; 
-        }
-        .stat-card { 
-            background:#fff; 
-            padding:1.2rem; 
-            border-radius:.75rem; 
-            box-shadow:0 2px 4px rgba(0,0,0,.08); 
-            border: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        .stat-card:active {
-            border-color: #3b82f6;
-            transform: scale(0.98);
-        }
-        .stat-card p { font-size: 0.9rem; color: #6b7280; font-weight: 600; }
-        .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; margin-top: 0.6rem; }
-        
-        .quick-actions { 
-            background:#fff; 
-            padding:1.2rem; 
-            border-radius:.75rem; 
-            box-shadow:0 2px 4px rgba(0,0,0,.08); 
-            margin-bottom:1.5rem; 
-        }
-        .quick-actions h3 { margin-bottom: 1rem; font-weight: 700; font-size: 1.1rem; }
-        .quick-actions-grid { 
-            display:grid; 
-            grid-template-columns:repeat(3, 1fr); 
-            gap:1rem; 
-        }
-        .quick-action-btn {
-            padding: 1.2rem 0.5rem;
-            border-radius: 0.75rem;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-            min-height: 80px;
-        }
-        .quick-action-btn:active {
-            transform: scale(0.95);
-        }
-
-        .customers-grid { 
-            display:grid; 
-            grid-template-columns:1fr; 
-            gap:1rem; 
-        }
-        .customer-card { 
-            background:#fff; 
-            padding:1.2rem; 
-            border-radius:.75rem; 
-            box-shadow:0 2px 4px rgba(0,0,0,.08); 
-            transition:transform .2s, box-shadow .2s; 
-            border: 2px solid transparent;
-        }
-        .customer-card:active { 
-            transform:scale(0.98); 
-            border-color: #3b82f6;
-        }
-
-        .modal-overlay { 
-            display:none; 
-            position:fixed; 
-            inset:0; 
-            background:rgba(0,0,0,0.5); 
-            align-items:flex-start;
-            justify-content:center; 
-            z-index:200; 
-            padding:1rem;
-            padding-top: 2rem;
-            overflow-y: auto;
-        }
-        .modal-overlay.active { display:flex; }
-        .modal { 
-            width:100%; 
-            max-width:600px; 
-            background:#fff; 
-            padding:1.5rem; 
-            border-radius:.75rem; 
-            margin-bottom: 2rem;
-        }
-        .modal-header { 
-            display:flex; 
-            justify-content:space-between; 
-            align-items:center; 
-            margin-bottom:1.2rem; 
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        .modal-title { font-size:1.25rem; font-weight:700; }
-        .modal-close { 
-            border:none; 
-            background:none; 
-            font-size:1.8rem; 
-            cursor:pointer; 
-            padding:0.25rem;
-            line-height:1;
-            min-width: 44px;
-            min-height: 44px;
-        }
-        
-        .modal-content {
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
-        }
-
-        .time-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1.2rem;
-        }
-        .time-option {
-            padding: 0.85rem;
-            border: 2px solid #d1d5db;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 600;
-            transition: all 0.2s;
-            background: #fff;
-        }
-        .time-option.selected {
-            background: #2563eb;
-            color: #fff;
-            border-color: #2563eb;
-        }
-        .time-option:active {
-            transform: scale(0.95);
-        }
-
-        .loading { padding:2rem; color:#6b7280; text-align:center; font-size: 1rem; }
-        .detail-section { 
-            background:#fff; 
-            padding:1.2rem; 
-            border-radius:.75rem; 
-            box-shadow:0 2px 4px rgba(0,0,0,.08); 
-            margin-bottom:1rem; 
-        }
-        
-        .entry-row, .payment-row {
-            padding: 1rem;
-            border-bottom: 2px solid #e5e7eb;
-            min-height: 60px;
-        }
-        .entry-row:last-child, .payment-row:last-child {
-            border-bottom: none;
-        }
-
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white; }
-        }
-
-        @media (min-width:768px) {
-            .menu-btn { display: none; }
-            .sidebar { 
-                transform: translateX(0);
-                width: 256px;
-            }
-            .sidebar-close { display: none; }
-            .sidebar-overlay { display: none !important; }
-            .header, .main-content { margin-left:256px; }
-            .stats-grid { grid-template-columns:repeat(4, 1fr); }
-            .customers-grid { grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); }
-        }
-        
-        @media (max-width:767px) {
-            .login-box { padding: 1.2rem; }
-            .main-content { padding: 1rem; }
-            h2 { font-size: 1.4rem !important; }
-        }
-    </style>
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f4f7fb;
+  color:#111827;
+}
+.hidden{display:none}
+.center{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+.card{
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+}
+input,select{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#2563eb;
+  color:#fff;
+  font-weight:bold;
+}
+.app{
+  display:flex;
+  min-height:100vh;
+}
+.sidebar{
+  width:220px;
+  background:#fff;
+  padding:20px;
+  border-right:1px solid #e5e7eb;
+}
+.main{
+  flex:1;
+  padding:20px;
+}
+.bill{
+  max-width:800px;
+  margin:auto;
+  background:#fff;
+  padding:24px;
+  border-radius:12px;
+}
+.bill h1{text-align:center}
+.bill table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+.bill th,.bill td{
+  border:1px solid #e5e7eb;
+  padding:8px;
+  font-size:14px;
+}
+.qr{text-align:center;margin-top:16px}
+.error{color:red;font-size:14px}
+</style>
 </head>
+
 <body>
-    <div class="login-container" id="loginContainer">
-        <div class="login-box">
-            <div class="login-header">
-                <h1>🥛 Milk Manager Pro</h1>
-                <p style="color:#6b7280;">Manage customers, entries & payments</p>
-            </div>
 
-            <div id="loginForm">
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input id="loginEmail" class="form-input" type="email" placeholder="you@example.com" autocomplete="email" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input id="loginPassword" class="form-input" type="password" placeholder="••••••••" autocomplete="current-password" />
-                </div>
-                <button class="btn btn-primary" onclick="handleLogin()">Sign In</button>
-                <button class="btn btn-secondary" onclick="toggleAuthMode()">Create Account</button>
-            </div>
+<!-- LOGIN -->
+<div id="loginBox" class="center">
+  <div class="card" style="width:320px;text-align:center">
+    <img src="dairy_logo.png" width="90" style="border-radius:50%">
+    <h2>Anish Dairy</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div id="error" class="error"></div>
+  </div>
+</div>
 
-            <div id="signupForm" style="display:none;">
-                <div class="form-group">
-                    <label class="form-label">Full Name</label>
-                    <input id="signupName" class="form-input" type="text" placeholder="Your name" autocomplete="name" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input id="signupEmail" class="form-input" type="email" placeholder="you@example.com" autocomplete="email" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input id="signupPassword" class="form-input" type="password" placeholder="Min 6 characters" autocomplete="new-password" />
-                </div>
-                <button class="btn btn-primary" onclick="handleSignup()">Create Account</button>
-                <button class="btn btn-secondary" onclick="toggleAuthMode()">Back to Sign In</button>
-            </div>
+<!-- APP -->
+<div id="app" class="hidden app">
+  <div class="sidebar">
+    <h3>Anish Dairy</h3>
+    <p onclick="showBill()">Generate Bill</p>
+    <p onclick="logout()">Logout</p>
+  </div>
 
-            <div id="authMessage" style="margin-top:1rem; display:none; padding:.85rem; border-radius:.5rem; font-size: 0.95rem;"></div>
-        </div>
+  <div class="main">
+    <h2>Generate Bill</h2>
+
+    <select id="customerSelect"></select>
+    <button onclick="generateBill()">Generate Bill</button>
+
+    <div id="billArea" class="bill hidden">
+      <h1>ANISH DAIRY</h1>
+      <p id="customerInfo"></p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Session</th>
+            <th>Milk</th>
+            <th>Qty</th>
+            <th>Rate</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody id="billEntries"></tbody>
+      </table>
+
+      <h3 id="finalBalance"></h3>
+      <p id="statusText"></p>
+
+      <div class="qr">
+        <div id="qr"></div>
+        <p>Scan & Pay (UPI)</p>
+      </div>
+
+      <button onclick="downloadPDF()">Download PDF</button>
     </div>
+  </div>
+</div>
 
-    <div class="app-container" id="appContainer">
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
-        
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                    <span style="font-size:1.6rem;">🥛</span>
-                    <h1>Milk Manager</h1>
-                </div>
-                <button class="sidebar-close" onclick="toggleSidebar(false)">&times;</button>
-            </div>
+<script>
+/* ================= FIREBASE ================= */
+firebase.initializeApp({
+  apiKey: "AIzaSyA6bK8TZkVqlyeRw-etHi-MxznRW8jBPJQ",
+  authDomain: "anish-milk-app.firebaseapp.com",
+  databaseURL: "https://anish-milk-app-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "anish-milk-app",
+  appId: "1:17384087601:web:83db1f8b77780ffde6b510"
+});
 
-            <nav class="sidebar-nav">
-                <button class="nav-item active" onclick="changeView('dashboard', this)">📊 Dashboard</button>
-                <button class="nav-item" onclick="changeView('customers', this)">👥 Customers</button>
-                <button class="nav-item" onclick="changeView('entries', this)">📝 Entries</button>
-                <button class="nav-item" onclick="changeView('payments', this)">💰 Payments</button>
-            </nav>
+const auth = firebase.auth();
+const db = firebase.database();
+const UPI_ID = "katara.anish@axl";
 
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">U</div>
-                    <div style="min-width:0; flex: 1;">
-                        <div id="userName" style="font-weight:700; font-size:.95rem;">User</div>
-                        <div id="userEmail" style="font-size:.85rem;color:#bfdbfe; overflow:hidden; text-overflow:ellipsis; white-space: nowrap;">user@mail.com</div>
-                    </div>
-                </div>
-                <button class="btn btn-secondary" style="width:100%;" onclick="handleLogout()">Sign Out</button>
-                <div style="margin-top:.75rem; text-align:center;">
-                    <div id="syncStatus" class="sync-badge">● Synced</div>
-                </div>
-            </div>
-        </aside>
+/* ================= AUTH ================= */
+auth.onAuthStateChanged(user=>{
+  if(user){
+    loginBox.classList.add("hidden");
+    app.classList.remove("hidden");
+    loadCustomers();
+  }else{
+    app.classList.add("hidden");
+    loginBox.classList.remove("hidden");
+  }
+});
 
-        <header class="header">
-            <div class="header-content">
-                <button class="menu-btn" onclick="toggleSidebar(true)">☰</button>
-                <div class="search-container">
-                    <svg style="position:absolute; left:.75rem; top:50%; transform: translateY(-50%); width:20px; height:20px; color:#9ca3af;" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input id="searchInput" class="search-input" type="text" placeholder="Search customers..." oninput="handleSearch(this.value)" />
-                </div>
-                <div class="three-dot-menu">
-                    <button class="three-dot-btn" onclick="toggleDropdown()">⋮</button>
-                    <div class="dropdown-menu" id="dropdownMenu">
-                        <div class="dropdown-item" onclick="exportData()">📥 Export Data</div>
-                        <div class="dropdown-item" onclick="showSettings()">⚙️ Settings</div>
-                        <div class="dropdown-item" onclick="showAbout()">ℹ️ About</div>
-                    </div>
-                </div>
-            </div>
-        </header>
+function login(){
+  error.innerText="";
+  auth.signInWithEmailAndPassword(
+    email.value.trim(),
+    password.value.trim()
+  ).catch(e=>error.innerText=e.message);
+}
 
-        <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
-            <div class="modal">
-                <div class="modal-header">
-                    <div class="modal-title" id="modalTitle">Modal</div>
-                    <button class="modal-close" onclick="closeModal()">&times;</button>
-                </div>
-                <div class="modal-content" id="modalContent"></div>
-            </div>
-        </div>
+function logout(){
+  auth.signOut();
+}
 
-        <main class="main-content">
-            <div id="dashboardView">
-                <h2 style="font-size:1.5rem; font-weight:700; margin-bottom:.5rem;">Dashboard</h2>
-                <p style="color:#6b7280; margin-bottom:1.2rem; font-size: 0.95rem;">Overview of your milk business</p>
+/* ================= CUSTOMERS ================= */
+function loadCustomers(){
+  customerSelect.innerHTML="";
+  db.ref("customers").once("value",snap=>{
+    snap.forEach(c=>{
+      const o=document.createElement("option");
+      o.value=c.key;
+      o.text=c.val().name+" ("+c.val().type+")";
+      customerSelect.appendChild(o);
+    });
+  });
+}
 
-                <div id="statsGrid" class="stats-grid"><div class="loading">Loading...</div></div>
+/* ================= BILL ================= */
+function generateBill(){
+  const cid=customerSelect.value;
+  let milkTotal=0,taken=0,given=0;
+  billEntries.innerHTML="";
 
-                <div class="quick-actions">
-                    <h3>Quick Actions</h3>
-                    <div class="quick-actions-grid">
-                        <button class="quick-action-btn" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe); color:#2563eb;" onclick="openModal('entry')">
-                            <span style="font-size: 1.5rem;">📝</span>
-                            <span>Entry</span>
-                        </button>
-                        <button class="quick-action-btn" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0); color:#059669;" onclick="openModal('payment')">
-                            <span style="font-size: 1.5rem;">💰</span>
-                            <span>Pay</span>
-                        </button>
-                        <button class="quick-action-btn" style="background:linear-gradient(135deg,#e9d5ff,#d8b4fe); color:#7c3aed;" onclick="openModal('customer')">
-                            <span style="font-size: 1.5rem;">👤</span>
-                            <span>Add</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+  db.ref("entries").once("value",snap=>{
+    snap.forEach(e=>{
+      const v=e.val();
+      if(v.customerId===cid){
+        milkTotal+=Number(v.amount);
+        billEntries.innerHTML+=`
+          <tr>
+            <td>${v.date}</td>
+            <td>${v.session}</td>
+            <td>${v.milkType}</td>
+            <td>${v.qty}</td>
+            <td>${v.rate}</td>
+            <td>${v.amount}</td>
+          </tr>`;
+      }
+    });
 
-            <div id="customersView" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; gap:0.5rem; flex-wrap: wrap;">
-                    <h2 style="font-size:1.4rem; font-weight:700;">Customers</h2>
-                    <button class="btn btn-primary" onclick="openModal('customer')" style="width:auto; padding:0.7rem 1.2rem;">+ Add</button>
-                </div>
-                <div id="customersGrid" class="customers-grid"><div class="loading">Loading...</div></div>
-            </div>
-
-            <div id="customerDetailView" style="display:none;">
-                <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; gap:0.75rem; flex-wrap:wrap;">
-                    <button class="btn btn-secondary" onclick="changeView('customers')" style="width:auto; padding:0.7rem 1.2rem;">← Back</button>
-                    <button class="btn btn-primary" onclick="generateInvoice()" style="width:auto; padding:0.7rem 1.2rem;">📄 Invoice</button>
-                </div>
-                <div id="customerDetailContent"></div>
-            </div>
-
-            <div id="entriesView" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; gap:0.5rem; flex-wrap: wrap;">
-                    <h2 style="font-size:1.4rem; font-weight:700;">Entries</h2>
-                    <button class="btn btn-primary" onclick="openModal('entry')" style="width:auto; padding:0.7rem 1.2rem;">+ Add</button>
-                </div>
-                <div id="entriesContainer"><div class="loading">Loading...</div></div>
-            </div>
-
-            <div id="paymentsView" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; gap:0.5rem; flex-wrap: wrap;">
-                    <h2 style="font-size:1.4rem; font-weight:700;">Payments</h2>
-                    <button class="btn btn-primary" onclick="openModal('payment')" style="width:auto; padding:0.7rem 1.2rem;">+ Add</button>
-                </div>
-                <div id="paymentsContainer"><div class="loading">Loading...</div></div>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyA6bK8TZkVqlyeRw-etHi-MxznRW8jBPJQ",
-          authDomain: "anish-milk-app.firebaseapp.com",
-          databaseURL: "https://anish-milk-app-default-rtdb.asia-southeast1.firebasedatabase.app/",
-          projectId: "anish-milk-app",
-          storageBucket: "anish-milk-app.appspot.com",
-          messagingSenderId: "17384087601",
-          appId: "1:17384087601:web:83db1f8b77780ffde6b510"
-        };
-
-        let firebaseInitialized = false;
-        try {
-            if (typeof firebase !== 'undefined' && firebase.apps) {
-                firebase.initializeApp(firebaseConfig);
-                firebaseInitialized = true;
-            }
-        } catch (e) {
-            console.error('Firebase init error:', e);
+    db.ref("payments").once("value",ps=>{
+      ps.forEach(p=>{
+        const v=p.val();
+        if(v.customerId===cid){
+          if(v.type==="taken") taken+=Number(v.amount);
+          if(v.type==="given") given+=Number(v.amount);
         }
+      });
+
+      const balance = milkTotal - taken + given;
+
+      finalBalance.innerText="Final Balance: ₹"+balance;
+      statusText.innerText =
+        balance>0 ? "Customer has to pay" :
+        balance<0 ? "You have to pay customer" :
+        "Account settled";
+
+      qr.innerHTML="";
+      new QRCode(qr,{
+        text:`upi://pay?pa=${UPI_ID}&am=${Math.abs(balance)}`,
+        width:160,
+        height:160
+      });
+
+      billArea.classList.remove("hidden");
+    });
+  });
+}
+
+/* ================= PDF ================= */
+function downloadPDF(){
+  const { jsPDF } = window.jspdf;
+  new jsPDF().html(billArea,{
+    callback:pdf=>pdf.save("Anish_Dairy_Bill.pdf"),
+    x:10,y:10
+  });
+}
+
+function showBill(){
+  billArea.classList.add("hidden");
+}
+</script>
 
-        const auth = firebaseInitialized ? firebase.auth() : null;
-        const database = firebaseInitialized ? firebase.database() : null;
-
-        let currentUser = null;
-        const UPI_ID = 'katara.anish@axl';
-        let currentCustomerMobile = null;
-        let selectedTime = 'morning';
-
-        let localData = { customers: [], entries: [], payments: [] };
-
-        document.addEventListener('click', (e) => {
-            const dropdown = document.getElementById('dropdownMenu');
-            const btn = document.querySelector('.three-dot-btn');
-            if (dropdown && !dropdown.contains(e.target) && e.target !== btn) {
-                dropdown.classList.remove('active');
-            }
-        });
-
-        function toggleDropdown() {
-            document.getElementById('dropdownMenu')?.classList.toggle('active');
-        }
-
-        function exportData() {
-            document.getElementById('dropdownMenu')?.classList.remove('active');
-            const dataStr = JSON.stringify(localData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `milk-manager-backup-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-            alert('Data exported!');
-        }
-
-        function showSettings() {
-            document.getElementById('dropdownMenu')?.classList.remove('active');
-            alert('Settings coming soon!');
-        }
-
-        function showAbout() {
-            document.getElementById('dropdownMenu')?.classList.remove('active');
-            alert('Milk Manager Pro v1.0\nBy Anish Dairy');
-        }
-
-        function showAuthMessage(msg, err = false) {
-            const el = document.getElementById('authMessage');
-            if (!el) return;
-            el.style.display = 'block';
-            el.textContent = msg;
-            el.style.background = err ? '#fee2e2' : '#dcfce7';
-            el.style.color = err ? '#b91c1c' : '#065f46';
-            setTimeout(() => el.style.display = 'none', 3500);
-        }
-
-        function toggleAuthMode() {
-            const login = document.getElementById('loginForm');
-            const signup = document.getElementById('signupForm');
-            if (login.style.display === 'none') {
-                login.style.display = 'block';
-                signup.style.display = 'none';
-            } else {
-                login.style.display = 'none';
-                signup.style.display = 'block';
-            }
-        }
-
-        function toggleSidebar(open) {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const shouldOpen = typeof open === 'boolean' ? open : !sidebar.classList.contains('active');
-            if (shouldOpen) {
-                sidebar.classList.add('active');
-                overlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            } else {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) toggleSidebar(false);
-        });
-
-        async function handleLogin() {
-            if (!auth) { showAuthMessage('Firebase not initialized', true); return; }
-            const email = document.getElementById('loginEmail')?.value.trim();
-            const password = document.getElementById('loginPassword')?.value;
-            if (!email || !password) { showAuthMessage('Fill all fields', true); return; }
-            try {
-                const cred = await auth.signInWithEmailAndPassword(email, password);
-                currentUser = cred.user;
-                showAuthMessage('Login successful');
-                setTimeout(showAppInterface, 300);
-            } catch (err) {
-                showAuthMessage(err.message || 'Login failed', true);
-            }
-        }
-
-        async function handleSignup() {
-            if (!auth || !database) { showAuthMessage('Firebase not initialized', true); return; }
-            const name = document.getElementById('signupName')?.value.trim();
-            const email = document.getElementById('signupEmail')?.value.trim();
-            const password = document.getElementById('signupPassword')?.value;
-            if (!name || !email || !password) { showAuthMessage('Fill all fields', true); return; }
-            if (password.length < 6) { showAuthMessage('Password min 6 chars', true); return; }
-            try {
-                const cred = await auth.createUserWithEmailAndPassword(email, password);
-                currentUser = cred.user;
-                await database.ref(`users/${currentUser.uid}/profile`).set({ name, email, createdAt: Date.now() });
-                showAuthMessage('Account created');
-                setTimeout(showAppInterface, 300);
-            } catch (err) {
-                showAuthMessage(err.message || 'Signup failed', true);
-            }
-        }
-
-        function handleLogout() {
-            if (!confirm('Sign out?')) return;
-            auth?.signOut();
-            currentUser = null;
-            document.getElementById('appContainer').classList.remove('show');
-            document.getElementById('loginContainer').style.display = 'flex';
-        }
-
-        function showAppInterface() {
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('appContainer').classList.add('show');
-            const email = currentUser?.email || 'user@mail.com';
-            document.getElementById('userEmail').textContent = email;
-            document.getElementById('userName').textContent = email.split('@')[0];
-            document.getElementById('userAvatar').textContent = email[0].toUpperCase();
-            loadAllData();
-        }
-
-        if (auth) {
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    currentUser = user;
-                    showAppInterface();
-                } else {
-                    document.getElementById('appContainer').classList.remove('show');
-                    document.getElementById('loginContainer').style.display = 'flex';
-                }
-            });
-        }
-
-        function getUserPath(path) {
-            return `users/${currentUser?.uid || 'demo'}/${path}`;
-        }
-
-        function setSyncStatus(syncing = false) {
-            const el = document.getElementById('syncStatus');
-            if (!el) return;
-            el.textContent = syncing ? '● Syncing...' : '● Synced';
-            el.style.background = syncing ? '#fef3c7' : '#dcfce7';
-            el.style.color = syncing ? '#92400e' : '#065f46';
-        }
-
-        async function loadAllData() {
-            setSyncStatus(true);
-            renderDashboard();
-            try {
-                if (database && currentUser?.uid) {
-                    const snap = await database.ref(getUserPath('')).once('value');
-                    const data = snap.val() || {};
-                    localData.customers = data.customers ? Object.values(data.customers) : [];
-                    localData.entries = data.entries ? Object.values(data.entries) : [];
-                    localData.payments = data.payments ? Object.values(data.payments) : [];
-                }
-            } catch (err) {
-                console.error('Load error:', err);
-                showAuthMessage('Error loading data', true);
-            }
-            renderDashboard();
-            setSyncStatus(false);
-        }
-
-        async function saveToFirebase(pathKey, arrayData) {
-            setSyncStatus(true);
-            try {
-                if (database && currentUser?.uid) {
-                    const obj = {};
-                    (arrayData || []).forEach(item => {
-                        const key = pathKey === 'customers' ? item.mobile : (item.id || Date.now());
-                        obj[key] = item;
-                    });
-                    await database.ref(getUserPath(pathKey)).set(obj);
-                }
-            } catch (err) {
-                console.error('Save error:', err);
-                showAuthMessage('Error saving data', true);
-            }
-            setSyncStatus(false);
-        }
-
-        function renderDashboard() {
-            const grid = document.getElementById('statsGrid');
-            if (!grid) return;
-            const today = new Date().toISOString().split('T')[0];
-            const todayCol = localData.entries.filter(e => e.date === today).reduce((s, e) => s + (e.amount || 0), 0);
-            
-            // CORRECTED PAYMENT LOGIC: Buyer gives money (expense), Supplier receives money (income)
-            const buyerExp = localData.entries.filter(e => {
-                const c = localData.customers.find(cu => cu.mobile === e.customerId);
-                return c?.type === 'buyer';
-            }).reduce((s, e) => s + (e.amount || 0), 0);
-            
-            const suppRev = localData.entries.filter(e => {
-                const c = localData.customers.find(cu => cu.mobile === e.customerId);
-                return c?.type === 'supplier';
-            }).reduce((s, e) => s + (e.amount || 0), 0);
-            
-            const netProfit = suppRev - buyerExp;
-            const pending = localData.customers.reduce((s, c) => s + (c.balance > 0 ? c.balance : 0), 0);
-
-            grid.innerHTML = `
-                <div class="stat-card">
-                    <p>Customers</p>
-                    <div class="stat-value">${localData.customers.length}</div>
-                </div>
-                <div class="stat-card">
-                    <p>Today</p>
-                    <div class="stat-value">₹${todayCol.toFixed(2)}</div>
-                </div>
-                <div class="stat-card">
-                    <p>Net Profit</p>
-                    <div class="stat-value" style="color:${netProfit >= 0 ? '#059669' : '#b91c1c'}">₹${netProfit.toFixed(2)}</div>
-                    <div style="font-size:.7rem; color:#6b7280; margin-top:.25rem;">Rev: ₹${suppRev.toFixed(0)} | Exp: ₹${buyerExp.toFixed(0)}</div>
-                </div>
-                <div class="stat-card">
-                    <p>Pending</p>
-                    <div class="stat-value">₹${pending.toFixed(2)}</div>
-                </div>
-            `;
-        }
-
-        function renderCustomers() {
-            const grid = document.getElementById('customersGrid');
-            if (!grid) return;
-            if (!localData.customers.length) {
-                grid.innerHTML = '<div class="loading">No customers yet</div>';
-                return;
-            }
-            grid.innerHTML = '';
-            localData.customers.forEach(c => {
-                const card = document.createElement('div');
-                card.className = 'customer-card';
-                card.style.cursor = 'pointer';
-                card.addEventListener('click', () => viewCustomerDetails(c.mobile));
-                const isSupp = c.type === 'supplier';
-                card.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:.5rem;">
-                        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,${isSupp ? '#f59e0b,#d97706' : '#3b82f6,#8b5cf6'});display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">${c.name[0]}</div>
-                        <div style="flex:1;">
-                            <div style="font-weight:700;">${c.name}</div>
-                            <div style="font-size:.9rem;color:#6b7280;">${c.mobile} • ${isSupp ? '📦 Supplier' : '🛒 Buyer'}</div>
-                        </div>
-                    </div>
-                    <div style="font-size:.9rem;color:#6b7280;margin-bottom:.6rem;">
-                        ${c.email ? '✉ ' + c.email + '<br/>' : ''} ${c.address ? '📍 ' + c.address : ''}
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div style="font-size:.95rem; font-weight:700; color:${c.balance>0? '#b91c1c' : '#065f46'}">Bal: ₹${Math.abs(c.balance || 0).toFixed(2)}</div>
-                            <div style="font-size:.85rem; color:#6b7280;">Rate: ₹${c.rate || 0}/L</div>
-                        </div>
-                        <div style="display:flex; gap:.5rem;" onclick="event.stopPropagation()">
-                            <button class="btn btn-secondary" style="padding:.4rem .6rem;" onclick="editCustomer('${c.mobile}')">Edit</button>
-                            <button class="btn" style="padding:.4rem .6rem; background:#fee2e2; color:#b91c1c;" onclick="deleteCustomer('${c.mobile}')">Del</button>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function viewCustomerDetails(mobile) {
-            currentCustomerMobile = mobile;
-            const customer = localData.customers.find(c => c.mobile === mobile);
-            if (!customer) return;
-            const entries = localData.entries.filter(e => e.customerId === mobile);
-            const payments = localData.payments.filter(p => p.customerId === mobile);
-            const isSupp = customer.type === 'supplier';
-            
-            let entriesHTML = entries.length ? entries.map(e => `
-                <div class="entry-row" style="display:flex; justify-content:space-between;">
-                    <div>
-                        <div style="font-weight:600;">${e.date} ${e.time ? '(' + e.time + ')' : ''}</div>
-                        <div style="font-size:.9rem; color:#6b7280;">${e.milkType} • ${e.liters}L @ ₹${e.rate}/L</div>
-                    </div>
-                    <div style="font-weight:700; color:${isSupp ? '#059669' : '#b91c1c'};">₹${e.amount.toFixed(2)}</div>
-                </div>
-            `).join('') : '<div style="padding:1rem; color:#6b7280;">No entries</div>';
-
-            let paymentsHTML = payments.length ? payments.map(p => `
-                <div class="payment-row" style="display:flex; justify-content:space-between;">
-                    <div>
-                        <div style="font-weight:600;">${p.date}</div>
-                        <div style="font-size:.9rem; color:#6b7280;">${p.method} • ${p.transactionId}</div>
-                    </div>
-                    <div style="font-weight:700; color:${isSupp ? '#b91c1c' : '#059669'};">₹${p.amount.toFixed(2)}</div>
-                </div>
-            `).join('') : '<div style="padding:1rem; color:#6b7280;">No payments</div>';
-
-            document.getElementById('customerDetailContent').innerHTML = `
-                <div class="detail-section">
-                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
-                        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,${isSupp ? '#f59e0b,#d97706' : '#3b82f6,#8b5cf6'});display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.5rem;">${customer.name[0]}</div>
-                        <div>
-                            <h2 style="font-size:1.5rem; font-weight:700;">${customer.name}</h2>
-                            <div style="color:#6b7280;">${customer.mobile} • ${isSupp ? '📦 Supplier' : '🛒 Buyer'}</div>
-                        </div>
-                    </div>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-top:1rem;">
-                        <div>
-                            <div style="font-size:.9rem; color:#6b7280;">Balance</div>
-                            <div style="font-size:1.5rem; font-weight:700; color:${customer.balance > 0 ? '#b91c1c' : '#065f46'};">₹${Math.abs(customer.balance).toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div style="font-size:.9rem; color:#6b7280;">Rate/Liter</div>
-                            <div style="font-size:1.5rem; font-weight:700;">₹${customer.rate || 0}/L</div>
-                        </div>
-                        <div>
-                            <div style="font-size:.9rem; color:#6b7280;">Total Entries</div>
-                            <div style="font-size:1.5rem; font-weight:700;">${entries.length}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="detail-section">
-                    <h3 style="font-weight:700; margin-bottom:.75rem;">Milk Entries (${entries.length})</h3>
-                    ${entriesHTML}
-                </div>
-                <div class="detail-section">
-                    <h3 style="font-weight:700; margin-bottom:.75rem;">Payment History (${payments.length})</h3>
-                    ${paymentsHTML}
-                </div>
-            `;
-
-            ['dashboardView', 'customersView', 'entriesView', 'paymentsView'].forEach(v => {
-                const el = document.getElementById(v);
-                if (el) el.style.display = 'none';
-            });
-            document.getElementById('customerDetailView').style.display = 'block';
-            if (window.innerWidth < 768) toggleSidebar(false);
-        }
-
-        function renderEntries() {
-            const container = document.getElementById('entriesContainer');
-            if (!container) return;
-            if (!localData.entries.length) {
-                container.innerHTML = '<div class="loading">No entries yet</div>';
-                return;
-            }
-            container.innerHTML = localData.entries.map(e => {
-                const c = localData.customers.find(cu => cu.mobile === e.customerId);
-                const isSupp = c?.type === 'supplier';
-                return `
-                <div style="background:#fff;padding:1rem;border-radius:.75rem;margin-bottom:.75rem;box-shadow:0 2px 4px rgba(0,0,0,.08);">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <div>
-                            <div style="font-weight:700;">${e.customerName} ${isSupp ? '📦' : '🛒'}</div>
-                            <div style="font-size:.9rem;color:#6b7280;">${e.date} ${e.time ? '(' + e.time + ')' : ''} • ${e.milkType} • ${e.liters}L</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:700; color:${isSupp ? '#059669' : '#b91c1c'};">₹${e.amount.toFixed(2)}</div>
-                            <div style="font-size:.85rem;color:#6b7280;">@₹${e.rate}/L</div>
-                        </div>
-                    </div>
-                </div>
-            `;}).join('');
-        }
-
-        function renderPayments() {
-            const container = document.getElementById('paymentsContainer');
-            if (!container) return;
-            if (!localData.payments.length) {
-                container.innerHTML = '<div class="loading">No payments yet</div>';
-                return;
-            }
-            container.innerHTML = localData.payments.map(p => {
-                const c = localData.customers.find(cu => cu.mobile === p.customerId);
-                const isSupp = c?.type === 'supplier';
-                return `
-                <div style="background:#fff;padding:1rem;border-radius:.75rem;margin-bottom:.75rem;box-shadow:0 2px 4px rgba(0,0,0,.08);">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <div>
-                            <div style="font-weight:700;">${p.customerName} ${isSupp ? '📦' : '🛒'}</div>
-                            <div style="font-size:.9rem;color:#6b7280;">${p.date} • ${p.method}</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:700; color:${isSupp ? '#b91c1c' : '#059669'};">₹${p.amount.toFixed(2)}</div>
-                            <div style="font-size:.8rem;color:#6b7280;">${p.transactionId || ''}</div>
-                        </div>
-                    </div>
-                </div>
-            `;}).join('');
-        }
-
-        function changeView(viewName, el) {
-            ['dashboard','customers','entries','payments','customerDetailView'].forEach(v => {
-                const node = document.getElementById(v === 'customerDetailView' ? v : v + 'View');
-                if (node) node.style.display = 'none';
-            });
-            const target = document.getElementById(viewName + 'View');
-            if (target) target.style.display = 'block';
-
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            if (el) el.classList.add('active');
-
-            if (viewName === 'customers') renderCustomers();
-            if (viewName === 'entries') renderEntries();
-            if (viewName === 'payments') renderPayments();
-            if (viewName === 'dashboard') renderDashboard();
-
-            if (window.innerWidth < 768) toggleSidebar(false);
-        }
-
-        function selectTime(time) {
-            selectedTime = time;
-            document.querySelectorAll('.time-option').forEach(opt => {
-                if (opt.dataset.time === time) {
-                    opt.classList.add('selected');
-                } else {
-                    opt.classList.remove('selected');
-                }
-            });
-        }
-
-        function openModal(type) {
-            const modal = document.getElementById('modalOverlay');
-            const title = document.getElementById('modalTitle');
-            const content = document.getElementById('modalContent');
-
-            if (type === 'customer') {
-                title.textContent = 'Add Customer';
-                content.innerHTML = getCustomerForm();
-            } else if (type === 'entry') {
-                title.textContent = 'Add Entry';
-                selectedTime = 'morning';
-                content.innerHTML = getEntryForm();
-                // Ensure time selector works after DOM update
-                setTimeout(() => {
-                    document.querySelectorAll('.time-option').forEach(opt => {
-                        opt.addEventListener('click', function() {
-                            selectTime(this.dataset.time);
-                        });
-                    });
-                }, 50);
-            } else if (type === 'payment') {
-                title.textContent = 'Record Payment';
-                content.innerHTML = getPaymentForm();
-            }
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        function getCustomerForm(edit) {
-            const e = edit || {};
-            return `
-                <form onsubmit="${edit ? `updateCustomer(event, '${e.mobile}')` : 'addCustomer(event)'}; return false;">
-                    <div class="form-group"><label class="form-label">Name *</label><input class="form-input" name="name" value="${e.name || ''}" required></div>
-                    <div class="form-group"><label class="form-label">Mobile *</label><input class="form-input" name="mobile" value="${e.mobile || ''}" ${edit ? 'readonly' : ''} required></div>
-                    <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" name="email" value="${e.email || ''}"></div>
-                    <div class="form-group"><label class="form-label">Address</label><input class="form-input" name="address" value="${e.address || ''}"></div>
-                    <div class="form-group"><label class="form-label">Type *</label>
-                        <select class="form-select" name="type" required>
-                            <option value="buyer"${e.type==='buyer'?' selected':''}>Buyer</option>
-                            <option value="supplier"${e.type==='supplier'?' selected':''}>Supplier</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label class="form-label">Rate (₹/L) *</label><input class="form-input" name="rate" type="number" step="0.01" value="${e.rate || 45}" required></div>
-                    <div style="display:flex; gap:.75rem; margin-top:1rem;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">${edit ? 'Update' : 'Add'}</button>
-                    </div>
-                </form>
-            `;
-        }
-
-        function getEntryForm() {
-            const opts = localData.customers.map(c => `<option value="${c.mobile}">${c.name} (₹${c.rate}/L)</option>`).join('');
-            return `
-                <form onsubmit="addEntry(event); return false;">
-                    <div class="form-group">
-                        <label class="form-label">Time *</label>
-                        <div class="time-selector">
-                            <div class="time-option selected" data-time="morning">🌅 Morning</div>
-                            <div class="time-option" data-time="evening">🌆 Evening</div>
-                        </div>
-                    </div>
-                    <div class="form-group"><label class="form-label">Customer *</label>
-                        <select class="form-select" name="customerId" id="entryCustomer" required onchange="updateEntryRate()">
-                            <option value="">Select Customer</option>${opts}
-                        </select>
-                    </div>
-                    <div class="form-group"><label class="form-label">Date *</label><input class="form-input" type="date" name="date" required value="${new Date().toISOString().split('T')[0]}"></div>
-                    <div class="form-group"><label class="form-label">Milk Type *</label>
-                        <select class="form-select" name="milkType"><option value="cow">Cow</option><option value="buffalo">Buffalo</option></select>
-                    </div>
-                    <div class="form-group"><label class="form-label">Liters *</label><input class="form-input" id="entryLiters" name="liters" type="number" step="0.1" required oninput="calcEntryAmount()"></div>
-                    <div class="form-group"><label class="form-label">Rate (₹/L) *</label><input class="form-input" id="entryRate" name="rate" type="number" step="0.01" required readonly style="background:#f3f4f6;"></div>
-                    <div class="form-group"><label class="form-label">Amount (₹)</label><input class="form-input" id="entryAmount" readonly style="background:#f3f4f6; font-weight:700;" value="0.00"></div>
-                    <div style="display:flex; gap:.75rem; margin-top:1rem;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Entry</button>
-                    </div>
-                </form>
-            `;
-        }
-
-        function updateEntryRate() {
-            const mobile = document.getElementById('entryCustomer')?.value;
-            const customer = localData.customers.find(c => c.mobile === mobile);
-            if (customer) {
-                const r = document.getElementById('entryRate');
-                if (r) r.value = customer.rate || 0;
-                calcEntryAmount();
-            }
-        }
-
-        function calcEntryAmount() {
-            const liters = parseFloat(document.getElementById('entryLiters')?.value || 0) || 0;
-            const rate = parseFloat(document.getElementById('entryRate')?.value || 0) || 0;
-            const amountEl = document.getElementById('entryAmount');
-            if (amountEl) amountEl.value = (liters * rate).toFixed(2);
-        }
-
-        function getPaymentForm() {
-            const opts = localData.customers.map(c => `<option value="${c.mobile}">${c.name} (Bal: ₹${(c.balance||0).toFixed(2)})</option>`).join('');
-            return `
-                <form onsubmit="addPayment(event); return false;">
-                    <div class="form-group"><label class="form-label">Customer *</label>
-                        <select class="form-select" name="customerId" required><option value="">Select</option>${opts}</select>
-                    </div>
-                    <div class="form-group"><label class="form-label">Date *</label><input class="form-input" type="date" name="date" required value="${new Date().toISOString().split('T')[0]}"></div>
-                    <div class="form-group"><label class="form-label">Amount (₹) *</label><input class="form-input" name="amount" type="number" step="0.01" required></div>
-                    <div class="form-group"><label class="form-label">Method *</label>
-                        <select class="form-select" name="method" required><option>Cash</option><option>UPI</option><option>Card</option><option>Bank Transfer</option></select>
-                    </div>
-                    <div class="form-group"><label class="form-label">Transaction ID</label><input class="form-input" name="transactionId" placeholder="Optional"></div>
-                    <div style="display:flex; gap:.75rem; margin-top:1rem;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Record</button>
-                    </div>
-                </form>
-            `;
-        }
-
-        async function addCustomer(e) {
-            e.preventDefault();
-            const fd = new FormData(e.target);
-            const mobile = fd.get('mobile').trim();
-            if (localData.customers.find(c => c.mobile === mobile)) {
-                alert('Customer exists');
-                return;
-            }
-            const newCustomer = {
-                mobile,
-                name: fd.get('name').trim(),
-                email: fd.get('email').trim(),
-                address: fd.get('address').trim(),
-                type: fd.get('type'),
-                rate: parseFloat(fd.get('rate')) || 45,
-                balance: 0
-            };
-            localData.customers.push(newCustomer);
-            await saveToFirebase('customers', localData.customers);
-            closeModal();
-            renderCustomers();
-            renderDashboard();
-            alert('Customer added');
-        }
-
-        async function addEntry(e) {
-            e.preventDefault();
-            const fd = new FormData(e.target);
-            const customerId = fd.get('customerId');
-            const customer = localData.customers.find(c => c.mobile === customerId);
-            if (!customer) { alert('Customer not found'); return; }
-            
-            const liters = parseFloat(fd.get('liters')) || 0;
-            const rate = parseFloat(fd.get('rate')) || 0;
-            const amount = liters * rate;
-
-            const newEntry = {
-                id: Date.now(),
-                customerId,
-                customerName: customer.name,
-                date: fd.get('date'),
-                time: selectedTime,
-                milkType: fd.get('milkType'),
-                liters,
-                rate,
-                amount
-            };
-
-            localData.entries.unshift(newEntry);
-            customer.balance = (customer.balance || 0) + amount;
-
-            await saveToFirebase('entries', localData.entries);
-            await saveToFirebase('customers', localData.customers);
-
-            closeModal();
-            renderEntries();
-            renderDashboard();
-            alert(`Entry added: ₹${amount.toFixed(2)}`);
-        }
-
-        async function addPayment(e) {
-            e.preventDefault();
-            const fd = new FormData(e.target);
-            const customerId = fd.get('customerId');
-            const customer = localData.customers.find(c => c.mobile === customerId);
-            if (!customer) { alert('Customer not found'); return; }
-            
-            const amount = parseFloat(fd.get('amount')) || 0;
-            const txnId = fd.get('transactionId').trim() || 'TXN' + Date.now();
-
-            const newPayment = {
-                id: Date.now(),
-                customerId,
-                customerName: customer.name,
-                date: fd.get('date'),
-                amount,
-                method: fd.get('method'),
-                transactionId: txnId
-            };
-
-            localData.payments.unshift(newPayment);
-            customer.balance = (customer.balance || 0) - amount;
-
-            await saveToFirebase('payments', localData.payments);
-            await saveToFirebase('customers', localData.customers);
-
-            closeModal();
-            renderPayments();
-            renderDashboard();
-            alert(`Payment recorded: ₹${amount.toFixed(2)}`);
-        }
-
-        function editCustomer(mobile) {
-            const customer = localData.customers.find(c => c.mobile === mobile);
-            if (!customer) return;
-            document.getElementById('modalTitle').textContent = 'Edit Customer';
-            document.getElementById('modalContent').innerHTML = getCustomerForm(customer);
-            document.getElementById('modalOverlay').classList.add('active');
-        }
-
-        async function updateCustomer(e, mobile) {
-            e.preventDefault();
-            const fd = new FormData(e.target);
-            const idx = localData.customers.findIndex(c => c.mobile === mobile);
-            if (idx === -1) return alert('Customer not found');
-            
-            localData.customers[idx].name = fd.get('name').trim();
-            localData.customers[idx].email = fd.get('email').trim();
-            localData.customers[idx].address = fd.get('address').trim();
-            localData.customers[idx].type = fd.get('type');
-            localData.customers[idx].rate = parseFloat(fd.get('rate')) || 45;
-            
-            await saveToFirebase('customers', localData.customers);
-            closeModal();
-            renderCustomers();
-            renderDashboard();
-            alert('Customer updated');
-        }
-
-        async function deleteCustomer(mobile) {
-            if (!confirm('Delete this customer?')) return;
-            localData.customers = localData.customers.filter(c => c.mobile !== mobile);
-            await saveToFirebase('customers', localData.customers);
-            renderCustomers();
-            renderDashboard();
-        }
-
-        function handleSearch(q) {
-            const term = q.trim().toLowerCase();
-            if (!term) {
-                renderCustomers();
-                return;
-            }
-            const matched = localData.customers.filter(c => 
-                c.name.toLowerCase().includes(term) || c.mobile.includes(term)
-            );
-            const grid = document.getElementById('customersGrid');
-            if (!grid) return;
-            if (!matched.length) {
-                grid.innerHTML = `<div class="loading">No match for "${term}"</div>`;
-                return;
-            }
-            grid.innerHTML = '';
-            matched.forEach(c => {
-                const card = document.createElement('div');
-                card.className = 'customer-card';
-                card.style.cursor = 'pointer';
-                card.addEventListener('click', () => viewCustomerDetails(c.mobile));
-                card.innerHTML = `<div style="font-weight:700;">${c.name}</div><div style="color:#6b7280; font-size:.9rem;">${c.mobile}</div>`;
-                grid.appendChild(card);
-            });
-        }
-
-        function generateInvoice() {
-            if (!currentCustomerMobile) return;
-            const customer = localData.customers.find(c => c.mobile === currentCustomerMobile);
-            if (!customer) return;
-
-            const entries = localData.entries.filter(e => e.customerId === currentCustomerMobile);
-            const total = entries.reduce((s, e) => s + e.amount, 0);
-
-            const modal = document.getElementById('modalOverlay');
-            const title = document.getElementById('modalTitle');
-            const content = document.getElementById('modalContent');
-
-            title.textContent = 'Invoice - ' + customer.name;
-            
-            const qrData = `upi://pay?pa=${UPI_ID}&pn=Milk Manager&am=${customer.balance > 0 ? customer.balance.toFixed(2) : '0'}&cu=INR`;
-            
-            content.innerHTML = `
-                <div id="invoiceContent" style="padding:1rem; background:#fff;">
-                    <div style="text-align:center; margin-bottom:1.5rem; border-bottom:2px solid #1e3a8a; padding-bottom:1rem;">
-                        <h1 style="font-size:1.75rem; color:#1e3a8a; margin-bottom:.25rem;">🥛 Milk Manager Pro</h1>
-                        <p style="color:#6b7280;">Invoice</p>
-                    </div>
-
-                    <div style="margin-bottom:1.5rem;">
-                        <div style="font-weight:700; margin-bottom:.5rem;">Customer Details:</div>
-                        <div><strong>Name:</strong> ${customer.name}</div>
-                        <div><strong>Mobile:</strong> ${customer.mobile}</div>
-                        ${customer.address ? `<div><strong>Address:</strong> ${customer.address}</div>` : ''}
-                    </div>
-
-                    <div style="margin-bottom:1.5rem;">
-                        <div style="font-weight:700; margin-bottom:.5rem;">Entries:</div>
-                        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
-                            <thead>
-                                <tr style="background:#f3f4f6; text-align:left;">
-                                    <th style="padding:.5rem; border:1px solid #e5e7eb;">Date</th>
-                                    <th style="padding:.5rem; border:1px solid #e5e7eb;">Type</th>
-                                    <th style="padding:.5rem; border:1px solid #e5e7eb;">Liters</th>
-                                    <th style="padding:.5rem; border:1px solid #e5e7eb;">Rate</th>
-                                    <th style="padding:.5rem; border:1px solid #e5e7eb;">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${entries.map(e => `
-                                    <tr>
-                                        <td style="padding:.5rem; border:1px solid #e5e7eb;">${e.date}</td>
-                                        <td style="padding:.5rem; border:1px solid #e5e7eb;">${e.milkType}</td>
-                                        <td style="padding:.5rem; border:1px solid #e5e7eb;">${e.liters}L</td>
-                                        <td style="padding:.5rem; border:1px solid #e5e7eb;">₹${e.rate}</td>
-                                        <td style="padding:.5rem; border:1px solid #e5e7eb;">₹${e.amount.toFixed(2)}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div style="margin-bottom:1.5rem; text-align:right;">
-                        <div style="font-size:1.25rem; font-weight:700;">Total: ₹${total.toFixed(2)}</div>
-                        <div style="font-size:1.1rem; font-weight:700; color:${customer.balance > 0 ? '#b91c1c' : '#065f46'}; margin-top:.5rem;">Balance: ₹${Math.abs(customer.balance).toFixed(2)}</div>
-                    </div>
-
-                    ${customer.balance > 0 ? `
-                        <div style="text-align:center; padding:1rem; background:#f9fafb; border-radius:.5rem;">
-                            <div style="font-weight:700; margin-bottom:.5rem;">Pay via UPI</div>
-                            <div id="qrcode" style="display:inline-block; padding:.5rem; background:#fff;"></div>
-                            <div style="margin-top:.5rem; font-size:.9rem; color:#6b7280;">UPI ID: ${UPI_ID}</div>
-                        </div>
-                    ` : ''}
-                </div>
-
-                <div class="no-print" style="display:flex; gap:.75rem; margin-top:1rem;">
-                    <button class="btn btn-secondary" onclick="closeModal()">Close</button>
-                    <button class="btn btn-primary" onclick="downloadInvoicePDF()">Download PDF</button>
-                </div>
-            `;
-
-            modal.classList.add('active');
-
-            if (customer.balance > 0 && typeof QRCode !== 'undefined') {
-                setTimeout(() => {
-                    const q = document.getElementById('qrcode');
-                    if (q) q.innerHTML = '';
-                    try {
-                        new QRCode(document.getElementById('qrcode'), {
-                            text: qrData,
-                            width: 200,
-                            height: 200
-                        });
-                    } catch (e) { console.warn('QR failed', e); }
-                }, 100);
-            }
-        }
-
-        function downloadInvoicePDF() {
-            const customer = localData.customers.find(c => c.mobile === currentCustomerMobile);
-            if (!customer) return;
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            doc.setFontSize(20);
-            doc.text('Milk Manager Pro - Invoice', 105, 20, { align: 'center' });
-            
-            doc.setFontSize(12);
-            let y = 40;
-            doc.text(`Customer: ${customer.name}`, 20, y);
-            y += 8;
-            doc.text(`Mobile: ${customer.mobile}`, 20, y);
-            if (customer.address) {
-                y += 8;
-                doc.text(`Address: ${customer.address}`, 20, y);
-            }
-
-            y += 15;
-            doc.setFontSize(14);
-            doc.text('Entries:', 20, y);
-            y += 8;
-
-            doc.setFontSize(10);
-            const entries = localData.entries.filter(e => e.customerId === currentCustomerMobile);
-            entries.forEach(e => {
-                doc.text(`${e.date} | ${e.milkType} | ${e.liters}L @ ₹${e.rate}/L = ₹${e.amount.toFixed(2)}`, 20, y);
-                y += 6;
-                if (y > 270) {
-                    doc.addPage();
-                    y = 20;
-                }
-            });
-
-            y += 10;
-            doc.setFontSize(14);
-            const total = entries.reduce((s, e) => s + e.amount, 0);
-            doc.text(`Total: ₹${total.toFixed(2)}`, 20, y);
-            y += 8;
-            doc.text(`Balance: ₹${Math.abs(customer.balance).toFixed(2)}`, 20, y);
-
-            if (customer.balance > 0) {
-                y += 15;
-                doc.text(`UPI: ${UPI_ID}`, 20, y);
-            }
-
-            doc.save(`invoice-${customer.name}-${Date.now()}.pdf`);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderDashboard();
-        });
-    </script>
 </body>
-
 </html>
-
