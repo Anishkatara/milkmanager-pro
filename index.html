@@ -628,9 +628,16 @@
 
         let firebaseInitialized = false;
         try {
-            if (typeof firebase !== 'undefined' && firebase.apps) {
-                firebase.initializeApp(firebaseConfig);
-                firebaseInitialized = true;
+           let firebaseInitialized = false;
+try {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    firebaseInitialized = true;
+} catch (e) {
+    console.error('Firebase init error:', e);
+}
+
             }
         } catch (e) {
             console.error('Firebase init error:', e);
