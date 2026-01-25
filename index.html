@@ -626,13 +626,22 @@
           appId: "1:17384087601:web:83db1f8b77780ffde6b510"
         };
 
-       if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+        let firebaseInitialized = false;
+
+try {
+    if (typeof firebase !== 'undefined') {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        firebaseInitialized = true;
+    }
+} catch (e) {
+    console.error('Firebase init error:', e);
 }
 
-const auth = firebase.auth();
-const database = firebase.database();
 
+        const auth = firebaseInitialized ? firebase.auth() : null;
+        const database = firebaseInitialized ? firebase.database() : null;
 
         let currentUser = null;
         const UPI_ID = 'katara.anish@axl';
